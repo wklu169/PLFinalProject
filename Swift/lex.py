@@ -6,25 +6,20 @@
 
 import ply.lex as lex
 
-# List of token names.   
-tokens = ('QUOTE', 'SIMB', 'NUM', 'LPAREN', 'RPAREN', \
-'NIL', 'TRUE', 'FALSE', 'TEXT', 'LET', 'SLASH')
+# List of token names
+tokens = ('LET', 'QUOTETEXT', 'SQUOTETEXT', 'INTEGER', 'VAR')
+
+literals = ['=', '+', '/', '*', '-', '(', ')', '.']
 
 # Reserved words
-reserved = {
-    'nil' : 'NIL',
-    'let' : 'LET'
-}
+reserved = ['LET']
 
 # Regular expression rules for simple tokens
-t_LPAREN = r'\('
-t_RPAREN = r'\)'
-t_QUOTE = r'\''
-t_TRUE = r'\#t'
-t_FALSE = r'\#f'
-t_SLASH = r'\\'
+t_QUOTETEXT = r'\".*?\"'
+t_SQUOTETEXT = r'\'.*?\''
 
-def t_NUM(t):
+
+def t_INTEGER(t):
     r'\d+'
     try:
         t.value = int(t.value)    
@@ -33,15 +28,10 @@ def t_NUM(t):
         t.value = 0
     return t
 
-def t_SIMB(t):
-    r'[a-zA-Z_+=\*\-][a-zA-Z0-9_+\*\-]*'
-    t.type = reserved.get(t.value,'SIMB')    # Check for reserved words
-    return t
-
-def t_TEXT(t):
-    r'\'[ -&,(-~]+\''
-    #r'\'[a-zA-Z0-9_+\*\- :,]*\''
-    t.type = reserved.get(t.value,'TEXT')    # Check for reserved words
+def t_VAR(t):
+    r'[A-Za-z_][A-Za-z0-9_]*'
+    if t.value.upper() in reserved:
+        t.type = t.value.upper()
     return t
 
 # Define a rule so we can track line numbers

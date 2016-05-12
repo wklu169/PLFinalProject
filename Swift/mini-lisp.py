@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from yacc import yacc, lisp_str
+from yacc import yacc
 import cmd
 
 class MiniLisp(cmd.Cmd):     # See https://docs.python.org/2/library/cmd.html

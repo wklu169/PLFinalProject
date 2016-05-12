@@ -10,40 +10,6 @@ Symbol = str          # A Lisp Symbol is implemented as a Python str
 List   = list         # A Lisp List is implemented as a Python list
 Number = (int, float) # A Lisp Number is implemented as a Python int or float
 
-################ Parsing: parse, tokenize, and read_from_tokens
-
-def parse(program):
-    "Read a Scheme expression from a string."
-    return read_from_tokens(tokenize(program))
-
-def tokenize(s):
-    "Convert a string into a list of tokens."
-    return s.replace('(',' ( ').replace(')',' ) ').split()
-
-def read_from_tokens(tokens):
-    "Read an expression from a sequence of tokens."
-    if len(tokens) == 0:
-        raise SyntaxError('unexpected EOF while reading')
-    token = tokens.pop(0)
-    if '(' == token:
-        L = []
-        while tokens[0] != ')':
-            L.append(read_from_tokens(tokens))
-        tokens.pop(0) # pop off ')'
-        return L
-    elif ')' == token:
-        raise SyntaxError('unexpected )')
-    else:
-        return atom(token)
-
-def atom(token):
-    "Numbers become numbers; every other token is a symbol."
-    try: return int(token)
-    except ValueError:
-        try: return float(token)
-        except ValueError:
-            return Symbol(token)
-
 ################ Environments
 
 def standard_env():
@@ -117,35 +83,29 @@ class Procedure(object):
 
 ################ eval
 
-toReturn = None
+vars = {}
 
 def eval(x, env=global_env):
     "Evaluate an expression in an environment."
+    global vars
     if isinstance(x, Symbol):      # variable reference
+        if x in vars.keys():
+            return vars[x]
         return env.find(x)[x]
     elif not isinstance(x, List):  # constant literal
-        return x                
-    elif x[0] == 'quote':          # (quote exp)
-        (_, exp) = x
-        return exp
-    elif x[0] == 'if':             # (if test conseq alt)
-        (_, test, conseq, alt) = x
-        exp = (conseq if eval(test, env) else alt)
-        return eval(exp, env)
-    elif x[0] == 'define':         # (define var exp)
-        (_, var, exp) = x
-        env[var] = eval(exp, env)
-    elif x[0] == 'set!':           # (set! var exp)
-        (_, var, exp) = x
-        env.find(var)[var] = eval(exp, env)
+        return x
     elif x[0] == 'lambda':         # (lambda (var...) body)
         (_, parms, body) = x
         return Procedure(parms, body, env)
-    elif x[0] == 'exec':
-        proc = eval(x[0], env)
-        import re
-        exec(proc(re.sub(r"^'|'$", '', x[1])))
-        return toReturn
+    elif x[0] == 'let':
+        (_, key, value) = x
+        if value in vars.keys():
+            value = vars[value]
+        if isinstance(value, List):
+            value = eval(value, env)
+        vars[key] = value
+        print vars
+        print key + ' = ' + str(value)
     else:                          # (proc arg...)
         proc = eval(x[0], env)
         args = [eval(exp, env) for exp in x[1:]]
