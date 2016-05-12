@@ -5,75 +5,7 @@ from lex import tokens
 
 DEBUG = False
 
-# Namespace & built-in functions
-
 name = {}
-
-global ast
-ast = []
-
-def cons(l):
-    return [l[0]] + l[1]
-
-name['cons'] = cons
-
-def concat(l):
-    return l[0] + l[1]
-
-name['concat'] = concat
-
-def listar(l):
-    return l
-
-name['list'] = listar
-
-def car(l):
-    return l[0][0]
-
-name['car'] = car
-
-def cdr(l):
-    return l[0][1:]
-
-name['cdr'] = cdr
-
-def eq(l):
-    return l[0] == l[1]
-
-name['eq'] = eq
-name['='] = eq
-
-def _and(l):
-    return not False in l
-
-name['and'] = _and
-
-def _or(l):
-    return True in l
-
-name['or'] = _or
-
-def cond(l):
-    if l[0]:
-        return l[1]
-
-name['cond'] = cond
-
-def add(l):
-    return sum(l)
-
-name['+'] = add
-
-def minus(l):
-    '''Unary minus'''
-    return -l[0]
-
-name['-'] = minus
-
-def _print(l):
-    print lisp_str(l[0])
-
-name['print'] = _print
 
 #  Evaluation functions
 

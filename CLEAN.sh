@@ -1,5 +1,5 @@
 rm parsetab.py
 rm parser.out
-#rm *class
+rm *class
 rm *.pyc
 

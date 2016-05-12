@@ -5,101 +5,8 @@ from lex import tokens
 
 DEBUG = False
 
-# Namespace & built-in functions
-
-name = {}
-
 global ast
 ast = []
-
-def cons(l):
-    return [l[0]] + l[1]
-
-name['cons'] = cons
-
-def concat(l):
-    return l[0] + l[1]
-
-name['concat'] = concat
-
-def listar(l):
-    return l
-
-name['list'] = listar
-
-def car(l):
-    return l[0][0]
-
-name['car'] = car
-
-def cdr(l):
-    return l[0][1:]
-
-name['cdr'] = cdr
-
-def eq(l):
-    return l[0] == l[1]
-
-name['eq'] = eq
-name['='] = eq
-
-def _and(l):
-    return not False in l
-
-name['and'] = _and
-
-def _or(l):
-    return True in l
-
-name['or'] = _or
-
-def cond(l):
-    if l[0]:
-        return l[1]
-
-name['cond'] = cond
-
-def add(l):
-    return sum(l)
-
-name['+'] = add
-
-def minus(l):
-    '''Unary minus'''
-    return -l[0]
-
-name['-'] = minus
-
-def _print(l):
-    print lisp_str(l[0])
-
-name['print'] = _print
-
-#  Evaluation functions
-
-def lisp_eval(simb, items):
-    if simb in name:
-        return call(name[simb], eval_lists(items))
-    else:
-       return [simb] + items
-
-def call(f, l):
-    try:
-        return f(eval_lists(l))  
-    except TypeError:
-        return f
-
-def eval_lists(l):
-    r = []
-    for i in l:
-        if is_list(i):
-            if i:
-                r.append(lisp_eval(i[0], i[1:]))
-            else:
-                r.append(i)
-        else:
-            r.append(i)
-    return r
 
 # Utilities functions
 
@@ -132,6 +39,10 @@ def p_exp_atom(p):
 
 def p_exp_qlist(p):
     'exp : quoted_list'
+    p[0] = p[1]
+
+def p_exp_list(p):
+    'exp : list'
     p[0] = p[1]
 
 def p_exp_call(p):
@@ -167,7 +78,7 @@ def p_item_list(p):
     'item : list'
     p[0] = p[1]
 
-def p_item_list(p):
+def p_item_qlist(p):
     'item : quoted_list'
     p[0] = p[1]
         

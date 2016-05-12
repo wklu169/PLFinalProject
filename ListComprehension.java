@@ -38,7 +38,7 @@ public class ListComprehension {
         return result;
     }
 
-    // SELECT name, author, chapters, verses FROM bib ORDER BY name;
+    // SELECT name FROM bib ORDER BY name;
     public static ArrayList<String> Alphabetical() throws IOException {
         ArrayList<Bible> bib = new ArrayList<>();
 
@@ -62,7 +62,7 @@ public class ListComprehension {
         bib.stream()
                 .sorted((b1, b2) -> b1.getName().compareTo(b2.getName()))
                 .forEach(b -> {
-                    String row = b.getName() + " | " + b.getAuthor() + " | " + b.getChapters() + " | " + b.getVerses();
+                    String row = b.getName();
                     result.add(row);
                 });
 

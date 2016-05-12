@@ -10,40 +10,6 @@ Symbol = str          # A Lisp Symbol is implemented as a Python str
 List   = list         # A Lisp List is implemented as a Python list
 Number = (int, float) # A Lisp Number is implemented as a Python int or float
 
-################ Parsing: parse, tokenize, and read_from_tokens
-
-def parse(program):
-    "Read a Scheme expression from a string."
-    return read_from_tokens(tokenize(program))
-
-def tokenize(s):
-    "Convert a string into a list of tokens."
-    return s.replace('(',' ( ').replace(')',' ) ').split()
-
-def read_from_tokens(tokens):
-    "Read an expression from a sequence of tokens."
-    if len(tokens) == 0:
-        raise SyntaxError('unexpected EOF while reading')
-    token = tokens.pop(0)
-    if '(' == token:
-        L = []
-        while tokens[0] != ')':
-            L.append(read_from_tokens(tokens))
-        tokens.pop(0) # pop off ')'
-        return L
-    elif ')' == token:
-        raise SyntaxError('unexpected )')
-    else:
-        return atom(token)
-
-def atom(token):
-    "Numbers become numbers; every other token is a symbol."
-    try: return int(token)
-    except ValueError:
-        try: return float(token)
-        except ValueError:
-            return Symbol(token)
-
 ################ Environments
 
 def standard_env():
@@ -52,7 +18,7 @@ def standard_env():
     env = Env()
     env.update(vars(math)) # sin, cos, sqrt, pi, ...
     env.update({
-        '+':op.add, '-':op.sub, '*':op.mul, '/':op.div,
+        '+':lambda *x: sum(x), '-':op.sub, '*': lambda *x: reduce(op.mul, x), '/':op.div,
         '>':op.gt, '<':op.lt, '>=':op.ge, '<=':op.le, '=':op.eq, 
         'abs':     abs,
         'append':  op.add,  
@@ -62,17 +28,20 @@ def standard_env():
         'cdr':     lambda x: x[1:], 
         'cons':    lambda x,y: [x] + y,
         'eq?':     op.is_, 
-        'equal?':  op.eq, 
+        'equal?':  op.eq,
+        'evens':   lambda x: [i for i in x if i%2==0],
         'length':  len, 
         'list':    lambda *x: list(x), 
         'list?':   lambda x: isinstance(x,list),
         'exec':    lambda x: eval(compile(x,'None','single')),
         'map':     map,
+        'mapp':    lambda x, y: map(x, y),
         'max':     max,
         'min':     min,
         'not':     op.not_,
         'null?':   lambda x: x == [], 
-        'number?': lambda x: isinstance(x, Number),   
+        'number?': lambda x: isinstance(x, Number),
+        'odds':    lambda x: [i for i in x if i%2==1],
         'procedure?': callable,
         'round':   round,
         'symbol?': lambda x: isinstance(x, Symbol),
@@ -89,22 +58,6 @@ class Env(dict):
         return self if (var in self) else self.outer.find(var)
 
 global_env = standard_env()
-
-################ Interaction: A REPL
-
-def repl(prompt='lis.py> '):
-    "A prompt-read-eval-print loop."
-    while True:
-        val = eval(parse(raw_input(prompt)))
-        if val is not None: 
-            print(lispstr(val))
-
-def lispstr(exp):
-    "Convert a Python object back into a Lisp-readable string."
-    if  isinstance(exp, list):
-        return '(' + ' '.join(map(lispstr, exp)) + ')' 
-    else:
-        return str(exp)
 
 ################ Procedures
 
@@ -148,5 +101,8 @@ def eval(x, env=global_env):
         return toReturn
     else:                          # (proc arg...)
         proc = eval(x[0], env)
-        args = [eval(exp, env) for exp in x[1:]]
+        try:
+            args = [eval(exp, env) for exp in x[1:]]
+        except TypeError:
+            args = x[1::]
         return proc(*args)
